@@ -13,51 +13,50 @@ namespace lab5Pool
 {
     public partial class Pump : UserControl
     {
-        private bool active = false;
-        private bool mode = false;
-
-        private Thread thread;
-        public string NamePump
+        private bool active = false;//Статус активности насоса
+        private bool mode = false;//Режим работы, тру на закачку воды, фолс на откачку
+        private Thread thread;//Поле потока для реализации многопоточности
+        public string NamePump//Имя для кастомного элемента управления
         {
             get => button1.Text;
             set => this.button1.Text = value;
         }
 
-        public int powerPump
+        public int powerPump//Мощность насоса
         {
             get;
             set;
         }
 
-        public bool Active
+        public bool Active//Свойство статуса работы
         {
             get;
         }
 
-        public void Activation(ProgressBar progressBar)
+        public void Activation(ProgressBar progressBar)//Метод активации/деактивации насоса
         {
             this.active = !this.active;
             this.button1.BackColor = active ? Color.Aquamarine : default;
             if (active)
             {
-                if (this.mode)
+                if (this.mode)//Если насос включен в режиме "накачки" 
                 {
                     this.thread = new Thread(new ParameterizedThreadStart(pumping));
                     thread.Start(progressBar);
                 }
-                else
+                else//Если насоса находится на откачке
                 {
                     this.thread = new Thread(new ParameterizedThreadStart(pumpingOut));
                     thread.Start(progressBar);
                 }
             }
-            else
+            else//Прерывание потока в случае отключения насоса
             {
                 thread.Abort();
             }
         }
 
-        private void pumping(object progressBar)
+        private void pumping(object progressBar)//Метод для насоса в режиме заполнения 
         {
             try
             {
@@ -71,11 +70,11 @@ namespace lab5Pool
                         {
                             progress.Value += this.powerPump;
                             progress.Refresh();
-                        }));
+                        }));//Выполнение кода в ассинхронном режиме
                     }
                     else
                     {
-                        thread.Abort();
+                        this.Activation(progress);
                     }
                 }
             }
@@ -121,7 +120,7 @@ namespace lab5Pool
             this.button1.Text = NamePump;
         }
 
-        public event EventHandler Click
+        public event EventHandler Click//Добавление возможности отлавливать событие клика по кастом элемента
         {
             add
             {
